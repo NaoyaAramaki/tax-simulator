@@ -259,14 +259,10 @@ export type MixedBlock =
       id: string;
       type: 'employee';
       months: number;
-      breakdown: {
-        id: string;
-        mode: 'manual' | 'estimate';
-        months: number;
-        amount?: number;
-        baseSalarySourceId?: string;
-        baseSalaryManual?: number;
-      }[];
+      inputMode: 'manual' | 'estimate';
+      amount?: number;
+      baseSalarySourceId?: string;
+      baseSalaryManual?: number;
     }
   | {
       id: string;

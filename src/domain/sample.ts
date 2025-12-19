@@ -45,9 +45,8 @@ export const createDemoInput = (year: number): TaxInput => ({
           id: 'emp1',
           type: 'employee',
           months: 6,
-          breakdown: [
-            { id: 'emp1a', mode: 'estimate', months: 6, baseSalarySourceId: 'A' },
-          ],
+          inputMode: 'estimate',
+          baseSalarySourceId: 'A',
         },
         {
           id: 'nat1',

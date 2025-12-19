@@ -420,46 +420,44 @@ export function calculateAll(input: TaxInput): EngineOutput {
     let exemptMonths = 0;
     (input.insurance.mixed?.blocks ?? []).forEach((block, bi) => {
       if (block.type === 'employee') {
-        block.breakdown.forEach((sub, siIndex) => {
-          if (sub.mode === 'manual') {
-            const amt = sub.amount ?? 0;
-            si += amt;
-            push(lines, {
-              section: 'insurance.si',
-              display: 'calc',
-              title: `社保（ブロック${bi + 1} 手入力）`,
-              expression: '入力額',
-              terms: [{ name: '月数', value: sub.months, unit: 'month', displayValue: `${sub.months}ヶ月` }],
-              result: amt,
-              resultKey: `insurance.si.block${bi + 1}.sub${siIndex + 1}.amount`,
-            });
-          } else {
-            const base = resolveBaseSalary(sub.baseSalarySourceId, sub.baseSalaryManual);
-            const rate = rule.defaults?.siRate ?? 0.15;
-            const annual = Math.round(base * rate);
-            const amt = prorateRound(annual, sub.months);
-            si += amt;
-            push(lines, {
-              section: 'insurance.si',
-              display: 'calc',
-              title: `社保（ブロック${bi + 1} 推計年額）`,
-              expression: '主たる給与年額 × 推計係数',
-              terms: [asTerm('主たる給与', base), { name: '推計係数', value: rate, unit: 'pct', displayValue: `${(rate * 100).toFixed(2)}%(${rate})` }],
-              result: annual,
-              resultKey: `insurance.si.block${bi + 1}.sub${siIndex + 1}.annualEstimated`,
-            });
-            push(lines, {
-              section: 'insurance.si',
-              display: 'calc',
-              title: `社保（ブロック${bi + 1} 按分）`,
-              expression: '推計年額 × 月数 / 12',
-              terms: [asTerm('推計年額', annual), { name: '月数', value: sub.months, unit: 'month', displayValue: `${sub.months}ヶ月` }],
-              result: amt,
-              notes: ['按分（年額×月数/12）は円単位で四捨五入'],
-              resultKey: `insurance.si.block${bi + 1}.sub${siIndex + 1}.amount`,
-            });
-          }
-        });
+        if (block.inputMode === 'manual') {
+          const amt = block.amount ?? 0;
+          si += amt;
+          push(lines, {
+            section: 'insurance.si',
+            display: 'calc',
+            title: `社保（ブロック${bi + 1} 手入力）`,
+            expression: '入力額',
+            terms: [{ name: '月数', value: block.months, unit: 'month', displayValue: `${block.months}ヶ月` }],
+            result: amt,
+            resultKey: `insurance.si.block${bi + 1}.amount`,
+          });
+        } else {
+          const base = resolveBaseSalary(block.baseSalarySourceId, block.baseSalaryManual);
+          const rate = rule.defaults?.siRate ?? 0.15;
+          const annual = Math.round(base * rate);
+          const amt = prorateRound(annual, block.months);
+          si += amt;
+          push(lines, {
+            section: 'insurance.si',
+            display: 'calc',
+            title: `社保（ブロック${bi + 1} 推計年額）`,
+            expression: '主たる給与年額 × 推計係数',
+            terms: [asTerm('主たる給与', base), { name: '推計係数', value: rate, unit: 'pct', displayValue: `${(rate * 100).toFixed(2)}%(${rate})` }],
+            result: annual,
+            resultKey: `insurance.si.block${bi + 1}.annualEstimated`,
+          });
+          push(lines, {
+            section: 'insurance.si',
+            display: 'calc',
+            title: `社保（ブロック${bi + 1} 按分）`,
+            expression: '推計年額 × 月数 / 12',
+            terms: [asTerm('推計年額', annual), { name: '月数', value: block.months, unit: 'month', displayValue: `${block.months}ヶ月` }],
+            result: amt,
+            notes: ['按分（年額×月数/12）は円単位で四捨五入'],
+            resultKey: `insurance.si.block${bi + 1}.amount`,
+          });
+        }
       } else {
         block.nhiBreakdown.forEach((sub, niIndex) => {
           if (sub.mode === 'manual') {

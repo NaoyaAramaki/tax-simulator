@@ -290,7 +290,8 @@ const App: React.FC = () => {
         id,
         type: 'employee',
         months: 1,
-        breakdown: [{ id: crypto.randomUUID(), mode: 'estimate', months: 1, baseSalarySourceId: input.salary.mainSourceId ?? undefined }],
+        inputMode: 'estimate',
+        baseSalarySourceId: input.salary.mainSourceId ?? undefined,
       };
       updateInput((prev) => ({ ...prev, insurance: { ...prev.insurance, mixed: { blocks: [...(prev.insurance.mixed?.blocks ?? []), block] } } }));
     } else {
@@ -1581,7 +1582,7 @@ const App: React.FC = () => {
                 <InputNumber value={input.insurance.national.np.exemptMonths} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, national: { ...p.insurance.national!, np: { ...p.insurance.national!.np, exemptMonths: v } } } }))} />
               </Field>
               <Field label="月額（上書き可）">
-                <InputNumber value={input.insurance.national.np.monthlyOverride ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, national: { ...p.insurance.national!, np: { ...p.insurance.national!.np, monthlyOverride: v } } } }))} />
+                <InputNumber value={input.insurance.national.np.monthlyOverride ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, national: { ...p.insurance.national!, np: { ...p.insurance.national!.np, monthlyOverride: v } } } }))} format="currency" />
               </Field>
             </div>
           </Section>
@@ -1652,7 +1653,7 @@ const App: React.FC = () => {
                           blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
                             it.id === b.id
                               ? e.target.value === 'employee'
-                                ? { id: b.id, type: 'employee', months: b.months, breakdown: [{ id: crypto.randomUUID(), mode: 'estimate', months: b.months, baseSalarySourceId: p.salary.mainSourceId ?? undefined }] }
+                                ? { id: b.id, type: 'employee', months: b.months, inputMode: 'estimate', baseSalarySourceId: p.salary.mainSourceId ?? undefined }
                                 : { id: b.id, type: 'national', months: b.months, nhiBreakdown: [{ id: crypto.randomUUID(), mode: 'estimate', months: b.months }], npPayMonths: b.months, npExemptMonths: 0, npMonthlyOverride: null }
                               : it
                           ),
@@ -1676,12 +1677,35 @@ const App: React.FC = () => {
                   }
                 />
               </Field>
-              {b.type === 'employee' &&
-                b.breakdown.map((sub, si) => (
-                  <div key={sub.id} className="insurance-sub-block">
-                    <Field label="サブ月数">
+              {b.type === 'employee' && (
+                <>
+                  <Field label="入力方法">
+                    <select
+                      value={b.inputMode}
+                      onChange={(e) =>
+                        updateInput((p) => ({
+                          ...p,
+                          insurance: {
+                            ...p.insurance,
+                            mixed: {
+                              blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
+                                it.id === b.id && it.type === 'employee'
+                                  ? { ...it, inputMode: e.target.value as 'manual' | 'estimate' }
+                                  : it
+                              ),
+                            },
+                          },
+                        }))
+                      }
+                    >
+                      <option value="estimate">推計</option>
+                      <option value="manual">手入力</option>
+                    </select>
+                  </Field>
+                  {b.inputMode === 'manual' ? (
+                    <Field label="金額（期間合計）">
                       <InputNumber
-                        value={sub.months}
+                        value={b.amount ?? 0}
                         onChange={(v) =>
                           updateInput((p) => ({
                             ...p,
@@ -1690,21 +1714,20 @@ const App: React.FC = () => {
                               mixed: {
                                 blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
                                   it.id === b.id && it.type === 'employee'
-                                    ? {
-                                        ...it,
-                                        breakdown: it.breakdown.map((sb: typeof it.breakdown[0]) => (sb.id === sub.id ? { ...sb, months: v } : sb)),
-                                      }
+                                    ? { ...it, amount: v }
                                     : it
                                 ),
                               },
                             },
                           }))
                         }
+                        format="currency"
                       />
                     </Field>
-                    <Field label="入力方法">
+                  ) : (
+                    <Field label="基準給与（支払先）">
                       <select
-                        value={sub.mode}
+                        value={b.baseSalarySourceId ?? ''}
                         onChange={(e) =>
                           updateInput((p) => ({
                             ...p,
@@ -1713,12 +1736,7 @@ const App: React.FC = () => {
                               mixed: {
                                 blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
                                   it.id === b.id && it.type === 'employee'
-                                    ? {
-                                        ...it,
-                                        breakdown: it.breakdown.map((sb: typeof it.breakdown[0]) =>
-                                          sb.id === sub.id ? { ...sb, mode: e.target.value as 'manual' | 'estimate' } : sb
-                                        ),
-                                      }
+                                    ? { ...it, baseSalarySourceId: e.target.value || undefined }
                                     : it
                                 ),
                               },
@@ -1726,67 +1744,17 @@ const App: React.FC = () => {
                           }))
                         }
                       >
-                        <option value="estimate">推計</option>
-                        <option value="manual">手入力</option>
+                        <option value="">未選択</option>
+                        {input.salary.sources.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
                       </select>
                     </Field>
-                    {sub.mode === 'manual' ? (
-                      <Field label="金額（期間合計）">
-                        <InputNumber
-                          value={sub.amount ?? 0}
-                          onChange={(v) =>
-                            updateInput((p) => ({
-                              ...p,
-                              insurance: {
-                                ...p.insurance,
-                                mixed: {
-                                  blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
-                                    it.id === b.id && it.type === 'employee'
-                                      ? { ...it, breakdown: it.breakdown.map((sb: typeof it.breakdown[0]) => (sb.id === sub.id ? { ...sb, amount: v } : sb)) }
-                                      : it
-                                  ),
-                                },
-                              },
-                            }))
-                          }
-                        />
-                      </Field>
-                    ) : (
-                      <>
-                        <Field label="基準給与（支払先）">
-                          <select
-                            value={sub.baseSalarySourceId ?? ''}
-                            onChange={(e) =>
-                              updateInput((p) => ({
-                                ...p,
-                                insurance: {
-                                  ...p.insurance,
-                                  mixed: {
-                                    blocks: (p.insurance.mixed?.blocks ?? []).map((it) =>
-                                      it.id === b.id && it.type === 'employee'
-                                        ? {
-                                            ...it,
-                                            breakdown: it.breakdown.map((sb: typeof it.breakdown[0]) => (sb.id === sub.id ? { ...sb, baseSalarySourceId: e.target.value || undefined } : sb)),
-                                          }
-                                        : it
-                                    ),
-                                  },
-                                },
-                              }))
-                            }
-                          >
-                            <option value="">未選択</option>
-                            {input.salary.sources.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.name}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                      </>
-                    )}
-                  </div>
-                ))}
+                  )}
+                </>
+              )}
 
               {b.type === 'national' && (
                 <>
@@ -1855,6 +1823,7 @@ const App: React.FC = () => {
                                 },
                               }))
                             }
+                            format="currency"
                           />
                         </Field>
                       )}
@@ -1916,6 +1885,7 @@ const App: React.FC = () => {
                               },
                             }))
                           }
+                          format="currency"
                         />
                       </Field>
                     </div>
