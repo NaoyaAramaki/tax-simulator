@@ -1039,10 +1039,10 @@ export function calculateAll(input: TaxInput): EngineOutput {
   const residentIncomeAmount = totalIncomeGeneral; // 所得額 = 総所得
   
   // 2. 課税所得金額 = 所得額 - 所得控除額
-  // 住民税基礎控除は合計所得金額に応じて段階的に設定（2025年以降）
+  // 住民税基礎控除は合計所得金額に応じて段階的に設定（2020年～2024年、2025年以降）
   const residentBasicDeduction = rule.resident_tax.basic_deduction
     ? pickBracketValue(totalIncomeGeneral, rule.resident_tax.basic_deduction.brackets)
-    : Math.max(0, basicDeduction - 50000); // 2024年以前は所得税基礎控除 - 5万円
+    : Math.max(0, basicDeduction - 50000); // 2019年以前は所得税基礎控除 - 5万円（フォールバック）
   // 生命保険料控除と地震保険料控除は住民税控除の計算結果を使用
   const residentDeductionTotal = residentBasicDeduction + socialInsuranceDeduction + ideco + small + safety + lifeTotalResidentTax + earthquakeResidentTax + medDed;
   const residentTaxableIncomeRaw = Math.max(0, residentIncomeAmount - residentDeductionTotal);
