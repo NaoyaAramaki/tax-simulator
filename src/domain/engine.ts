@@ -1189,7 +1189,7 @@ export function calculateAll(input: TaxInput): EngineOutput {
   });
 
   // --- Furusato ---
-  const specialCap = Math.floor(residentIncomePart * 0.2);
+  const specialCap = Math.floor(residentTotal * 0.2);
   const denom = 1 - incomeTaxRate - residentRate;
   const deductibleLimit = denom > 0 ? Math.floor(specialCap / denom) : 0;
   const donationLimit = deductibleLimit + 2000;
@@ -1201,9 +1201,9 @@ export function calculateAll(input: TaxInput): EngineOutput {
     section: 'furusato.limit',
     display: 'calc',
     title: 'ふるさと納税 控除対象額（上限）',
-    expression: '(住民税所得割額 × 20%) ÷ (1 − 所得税率 − 10%)',
+    expression: '(住民税（合計） × 20%) ÷ (1 − 所得税率 − 10%)',
     terms: [
-      asTerm('住民税所得割額', residentIncomePart),
+      asTerm('住民税（合計）', residentTotal),
       { name: '住民税特例分 上限率', value: 0.2, unit: 'pct', displayValue: '20%(0.20)' },
       { name: '所得税率', value: incomeTaxRate, unit: 'pct', displayValue: `${(incomeTaxRate * 100).toFixed(2)}%(${incomeTaxRate})` },
       { name: '住民税基本分率', value: residentRate, unit: 'pct', displayValue: `${(residentRate * 100).toFixed(2)}%(${residentRate})` },
@@ -1264,7 +1264,7 @@ export function calculateAll(input: TaxInput): EngineOutput {
     ],
     result: furusatoResidentSpecial,
     resultKey: 'furusato.breakdown.residentSpecial',
-    notes: [`この金額は『住民税所得割額×20%』以下である必要があります（上限: ${formatYen(specialCap)}）`],
+    notes: [`この金額は『住民税（合計）×20%』以下である必要があります（上限: ${formatYen(specialCap)}）`],
   });
 
   const sites = input.comparisonSites.filter((s) => s.amount > 0);

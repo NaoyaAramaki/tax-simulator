@@ -259,7 +259,7 @@ const prorateRound = (annual: number, months: number) =>
 ### 1.9 ふるさと納税計算詳細
 
 **処理**:
-1. **住民税特例分上限**: `住民税所得割額 × 0.2`
+1. **住民税特例分上限**: `住民税（合計） × 0.2`
 2. **控除対象額（上限）**: 
    - 分母: `1 - 所得税率 - 10%`
    - `分母 > 0`の場合: `floor(住民税特例分上限 / 分母)`
@@ -269,7 +269,7 @@ const prorateRound = (annual: number, months: number) =>
    - 所得税控除: `floor(控除対象額 × 所得税率)`
    - 住民税基本分: `floor(控除対象額 × 10%)`
    - 住民税特例分: `控除対象額 - 所得税控除 - 住民税基本分`
-5. **検証**: `特例分 ≤ 所得割×20%`
+5. **検証**: `特例分 ≤ 住民税（合計）×20%`
 6. **仲介サイト比較**:
    - サイト最小値: `min(...comparisonSites.map(s => s.amount))`
    - 採用値: `min(本アプリ上限, サイト最小値)`
@@ -603,17 +603,17 @@ if (input.family.dependentCount < input.family.dependents4064Count + input.famil
 ### 6.1 ふるさと納税（正式公式②）
 
 **計算式**:
-1. 住民税特例分上限: `住民税所得割額 × 0.2`
-2. 控除対象額（上限）: `(住民税所得割額 × 0.2) ÷ (1 - 所得税率 - 0.1)`
+1. 住民税特例分上限: `住民税（合計） × 0.2`
+2. 控除対象額（上限）: `(住民税（合計） × 0.2) ÷ (1 - 所得税率 - 0.1)`
 3. 寄付額上限: `控除対象額 + 2000`
 4. 所得税控除: `floor(控除対象額 × 所得税率)`
 5. 住民税基本分: `floor(控除対象額 × 0.1)`
 6. 住民税特例分: `控除対象額 - 所得税控除 - 住民税基本分`
-7. 検証: `特例分 ≤ 所得割 × 0.2`
+7. 検証: `特例分 ≤ 住民税（合計） × 0.2`
 
 **実装**:
 ```typescript
-const specialCap = Math.floor(residentIncomePart * 0.2);
+const specialCap = Math.floor(residentTotal * 0.2);
 const denom = 1 - incomeTaxRate - 0.1;
 const deductibleLimit = denom > 0 ? Math.floor(specialCap / denom) : 0;
 const donationLimit = deductibleLimit + 2000;
