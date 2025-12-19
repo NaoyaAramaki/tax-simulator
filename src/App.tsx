@@ -30,27 +30,155 @@ const Field: React.FC<{ label: string; children: React.ReactNode; required?: boo
   </div>
 );
 
-const InputNumber: React.FC<{ value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean; placeholder?: string; required?: boolean }> = ({ value, onChange, min, max, disabled, placeholder, required }) => (
-  <input 
-    type="number" 
-    className="input-number" 
-    value={value === 0 ? 0 : value || ''} 
-    min={min} 
-    max={max}
-    onChange={(e) => {
-      const val = e.target.value;
-      if (val === '' || val === '-') {
-        onChange(0);
+// 全角数字を半角数字に変換
+const convertToHalfWidth = (str: string): string => {
+  return str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+};
+
+// 数値文字列から数値のみを抽出（全角・半角対応）
+const extractNumber = (str: string): string => {
+  return str.replace(/[^0-9０-９.-]/g, '').replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+};
+
+// 金額フォーマット（円マーク + 3桁区切り）
+const formatCurrency = (value: number): string => {
+  if (value === 0 || value === null || value === undefined) return '';
+  return `￥${Math.abs(value).toLocaleString('ja-JP')}`;
+};
+
+// パーセントフォーマット（小数点第2位まで）
+const formatPercentage = (value: number): string => {
+  if (value === 0 || value === null || value === undefined) return '';
+  // 小数値を%表示に変換（例: 0.1 → 10%）
+  return `${(value * 100).toFixed(2)}%`;
+};
+
+// 金額文字列を数値に変換
+const parseCurrency = (str: string): number => {
+  const cleaned = extractNumber(str);
+  if (cleaned === '' || cleaned === '-') return 0;
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+};
+
+// パーセント文字列を数値に変換（%として扱う）
+const parsePercentage = (str: string): number => {
+  const cleaned = extractNumber(str);
+  if (cleaned === '' || cleaned === '-') return 0;
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+};
+
+type InputNumberProps = {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  disabled?: boolean;
+  placeholder?: string;
+  required?: boolean;
+  format?: 'currency' | 'percentage' | 'number';
+};
+
+const InputNumber: React.FC<InputNumberProps> = ({ value, onChange, min, max, disabled, placeholder, required, format = 'number' }) => {
+  const [displayValue, setDisplayValue] = React.useState<string>('');
+  const [isFocused, setIsFocused] = React.useState(false);
+
+  // フォーカス時に表示値を更新
+  React.useEffect(() => {
+    if (!isFocused) {
+      if (format === 'currency') {
+        setDisplayValue(formatCurrency(value));
+      } else if (format === 'percentage') {
+        setDisplayValue(formatPercentage(value));
       } else {
-        const num = Number(val);
-        onChange(isNaN(num) ? 0 : num);
+        setDisplayValue(value === 0 ? '' : String(value));
       }
-    }} 
-    disabled={disabled}
-    placeholder={placeholder}
-    required={required}
-  />
-);
+    }
+  }, [value, format, isFocused]);
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    // フォーカス時は数値のみ表示
+    if (format === 'currency') {
+      setDisplayValue(value === 0 ? '' : String(value));
+    } else if (format === 'percentage') {
+      // パーセントの場合、小数値を%表示に変換（例: 0.1 → 10）
+      setDisplayValue(value === 0 ? '' : String(value * 100));
+    } else {
+      setDisplayValue(value === 0 ? '' : String(value));
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    // フォーカス外れたらフォーマット適用
+    if (format === 'currency') {
+      setDisplayValue(formatCurrency(value));
+    } else if (format === 'percentage') {
+      setDisplayValue(formatPercentage(value));
+    } else {
+      setDisplayValue(value === 0 ? '' : String(value));
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    
+    // 全角数字を半角に変換
+    val = convertToHalfWidth(val);
+    
+    if (format === 'currency') {
+      // 金額の場合：数値のみ抽出してパース
+      const num = parseCurrency(val);
+      onChange(num);
+      // 入力中は数値のみ表示
+      setDisplayValue(val.replace(/[^0-9.-]/g, ''));
+    } else if (format === 'percentage') {
+      // パーセントの場合：数値のみ抽出してパース（%として扱うため100で割る）
+      const num = parsePercentage(val);
+      onChange(num / 100); // %を小数に変換（例: 10 → 0.1）
+      // 入力中は数値のみ表示（小数点第2位まで）
+      const cleaned = val.replace(/[^0-9.-]/g, '');
+      const parts = cleaned.split('.');
+      if (parts.length > 2) {
+        // 複数の小数点がある場合は最初の2つだけ
+        setDisplayValue(parts[0] + '.' + parts.slice(1, 3).join(''));
+      } else if (parts[1] && parts[1].length > 2) {
+        // 小数点以下が2桁を超える場合は切り捨て
+        setDisplayValue(parts[0] + '.' + parts[1].substring(0, 2));
+      } else {
+        setDisplayValue(cleaned);
+      }
+    } else {
+      // 通常の数値の場合
+      const cleaned = extractNumber(val);
+      if (cleaned === '' || cleaned === '-') {
+        onChange(0);
+        setDisplayValue('');
+      } else {
+        const num = Number(cleaned);
+        onChange(isNaN(num) ? 0 : num);
+        setDisplayValue(cleaned);
+      }
+    }
+  };
+
+  return (
+    <input 
+      type="text"
+      inputMode={format === 'percentage' ? 'decimal' : 'numeric'}
+      className="input-number" 
+      value={displayValue} 
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      disabled={disabled}
+      placeholder={placeholder}
+      required={required}
+    />
+  );
+};
 
 const CalcLineCard: React.FC<{ line: CalcLine }> = ({ line }) => (
   <div className="calc-line-card">
@@ -595,6 +723,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="事業所得">
@@ -610,6 +739,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="不動産所得">
@@ -625,6 +755,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="配当所得">
@@ -640,6 +771,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="譲渡所得">
@@ -655,6 +787,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="一時所得">
@@ -670,6 +803,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="雑所得">
@@ -685,6 +819,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="合計">
@@ -701,6 +836,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                 </div>
@@ -721,6 +857,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="配偶者控除">
@@ -736,6 +873,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="扶養控除">
@@ -751,6 +889,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="障害者控除">
@@ -766,6 +905,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="寡婦/ひとり親控除">
@@ -781,6 +921,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="勤労学生控除">
@@ -796,6 +937,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="社会保険料控除">
@@ -811,6 +953,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="生命保険料控除">
@@ -826,6 +969,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="地震保険料控除">
@@ -841,6 +985,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="医療費控除">
@@ -856,6 +1001,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="寄附金控除（ふるさと納税含む）">
@@ -871,6 +1017,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                 </div>
@@ -891,6 +1038,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="配当控除">
@@ -906,6 +1054,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                   <Field label="外国税額控除">
@@ -921,6 +1070,7 @@ const App: React.FC = () => {
                           } : undefined,
                         },
                       }))} 
+                      format="currency"
                     />
                   </Field>
                 </div>
@@ -1165,10 +1315,11 @@ const App: React.FC = () => {
               disabled={!input.business.enabled}
               placeholder="例: 5000000"
               required={input.business.enabled}
+              format="currency"
             />
           </Field>
           <Field label="経費">
-            <InputNumber value={input.business.expenses} onChange={(v) => updateInput((p) => ({ ...p, business: { ...p.business, expenses: v } }))} disabled={!input.business.enabled} />
+            <InputNumber value={input.business.expenses} onChange={(v) => updateInput((p) => ({ ...p, business: { ...p.business, expenses: v } }))} disabled={!input.business.enabled} format="currency" />
           </Field>
         </div>
         <label>
@@ -1225,14 +1376,14 @@ const App: React.FC = () => {
         }
       >
         <Field label="配当金">
-          <InputNumber value={input.stocks.dividend.amount} onChange={(v) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, dividend: { ...p.stocks.dividend, amount: v } } }))} />
+          <InputNumber value={input.stocks.dividend.amount} onChange={(v) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, dividend: { ...p.stocks.dividend, amount: v } } }))} format="currency" />
           <select value={input.stocks.dividend.taxMode} onChange={(e) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, dividend: { ...p.stocks.dividend, taxMode: e.target.value as any } } }))}>
             <option value="general">総合課税</option>
             <option value="separate">申告分離課税</option>
           </select>
         </Field>
         <Field label="売買益">
-          <InputNumber value={input.stocks.capitalGain.amount} onChange={(v) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, capitalGain: { ...p.stocks.capitalGain, amount: v } } }))} />
+          <InputNumber value={input.stocks.capitalGain.amount} onChange={(v) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, capitalGain: { ...p.stocks.capitalGain, amount: v } } }))} format="currency" />
           <select value={input.stocks.capitalGain.taxMode} onChange={(e) => updateInput((p) => ({ ...p, stocks: { ...p.stocks, capitalGain: { ...p.stocks.capitalGain, taxMode: e.target.value as any } } }))}>
             <option value="general">総合課税</option>
             <option value="separate">申告分離課税</option>
@@ -1246,31 +1397,31 @@ const App: React.FC = () => {
     <div>
       <Section title="掛金系">
         <Field label="iDeCo">
-          <InputNumber value={input.deductions.ideco} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, ideco: v } }))} />
+          <InputNumber value={input.deductions.ideco} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, ideco: v } }))} format="currency" />
         </Field>
         <Field label="小規模企業共済">
-          <InputNumber value={input.deductions.smallBizMutualAid} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, smallBizMutualAid: v } }))} />
+          <InputNumber value={input.deductions.smallBizMutualAid} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, smallBizMutualAid: v } }))} format="currency" />
         </Field>
         <Field label="経営セーフティ共済">
-          <InputNumber value={input.deductions.safetyMutualAid} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, safetyMutualAid: v } }))} />
+          <InputNumber value={input.deductions.safetyMutualAid} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, safetyMutualAid: v } }))} format="currency" />
         </Field>
       </Section>
 
       <Section title="生命保険料控除">
         <Field label="一般">
-          <InputNumber value={input.deductions.lifeInsurance.general} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, general: v } } }))} />
+          <InputNumber value={input.deductions.lifeInsurance.general} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, general: v } } }))} format="currency" />
         </Field>
         <Field label="介護医療">
-          <InputNumber value={input.deductions.lifeInsurance.nursingMedical} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, nursingMedical: v } } }))} />
+          <InputNumber value={input.deductions.lifeInsurance.nursingMedical} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, nursingMedical: v } } }))} format="currency" />
         </Field>
         <Field label="個人年金">
-          <InputNumber value={input.deductions.lifeInsurance.pension} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, pension: v } } }))} />
+          <InputNumber value={input.deductions.lifeInsurance.pension} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, lifeInsurance: { ...p.deductions.lifeInsurance, pension: v } } }))} format="currency" />
         </Field>
       </Section>
 
       <Section title="地震保険料控除">
         <Field label="地震保険料">
-          <InputNumber value={input.deductions.earthquake} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, earthquake: v } }))} />
+          <InputNumber value={input.deductions.earthquake} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, earthquake: v } }))} format="currency" />
         </Field>
       </Section>
 
@@ -1278,16 +1429,16 @@ const App: React.FC = () => {
         <div className="info-message">必要な場合のみ金額を入力してください（未入力=0円）</div>
         <div className="grid-2cols">
           <Field label="治療費等">
-            <InputNumber value={input.deductions.medical.treatment} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, treatment: v } } }))} />
+            <InputNumber value={input.deductions.medical.treatment} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, treatment: v } } }))} format="currency" />
           </Field>
           <Field label="通院交通費">
-            <InputNumber value={input.deductions.medical.transport} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, transport: v } } }))} />
+            <InputNumber value={input.deductions.medical.transport} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, transport: v } } }))} format="currency" />
           </Field>
           <Field label="その他">
-            <InputNumber value={input.deductions.medical.other} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, other: v } } }))} />
+            <InputNumber value={input.deductions.medical.other} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, other: v } } }))} format="currency" />
           </Field>
           <Field label="民間保険からの補填（民間保険加入分で支払いが行われたもの）">
-            <InputNumber value={input.deductions.medical.reimbursed} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, reimbursed: v } } }))} />
+            <InputNumber value={input.deductions.medical.reimbursed} onChange={(v) => updateInput((p) => ({ ...p, deductions: { ...p.deductions, medical: { ...p.deductions.medical, enabled: true, reimbursed: v } } }))} format="currency" />
           </Field>
         </div>
       </Section>
@@ -1417,7 +1568,7 @@ const App: React.FC = () => {
             </Field>
             {input.insurance.national.nhi.mode === 'manual' && (
               <Field label="国保（年額）">
-                <InputNumber value={input.insurance.national.nhi.amount ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, national: { ...p.insurance.national!, nhi: { ...p.insurance.national!.nhi, amount: v } } } }))} />
+                <InputNumber value={input.insurance.national.nhi.amount ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, national: { ...p.insurance.national!, nhi: { ...p.insurance.national!.nhi, amount: v } } } }))} format="currency" />
               </Field>
             )}
           </Section>
@@ -1455,7 +1606,7 @@ const App: React.FC = () => {
           </Field>
           {input.insurance.employee?.inputMode === 'manual' ? (
             <Field label="社保（年額）">
-              <InputNumber value={input.insurance.employee?.amount ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, employee: { ...(p.insurance.employee ?? { inputMode: 'manual' }), amount: v } } }))} />
+              <InputNumber value={input.insurance.employee?.amount ?? 0} onChange={(v) => updateInput((p) => ({ ...p, insurance: { ...p.insurance, employee: { ...(p.insurance.employee ?? { inputMode: 'manual' }), amount: v } } }))} format="currency" />
             </Field>
           ) : (
             <>
@@ -1808,18 +1959,21 @@ const App: React.FC = () => {
           <InputNumber
             value={input.overrides.incomeTaxRateOverride ?? 0}
             onChange={(v) => updateInput((p) => ({ ...p, overrides: { ...p.overrides, incomeTaxRateOverride: v } }))}
+            format="percentage"
           />
         </Field>
         <Field label="住民税所得割率 上書き">
           <InputNumber
             value={input.overrides.residentIncomeRateOverride ?? 0}
             onChange={(v) => updateInput((p) => ({ ...p, overrides: { ...p.overrides, residentIncomeRateOverride: v } }))}
+            format="percentage"
           />
         </Field>
         <Field label="株式分離税率 上書き">
           <InputNumber
             value={input.overrides.separateTaxRateOverride ?? 0}
             onChange={(v) => updateInput((p) => ({ ...p, overrides: { ...p.overrides, separateTaxRateOverride: v } }))}
+            format="percentage"
           />
         </Field>
       </Section>
@@ -1869,6 +2023,7 @@ const App: React.FC = () => {
                     comparisonSites: p.comparisonSites.map((it) => (it.id === s.id ? { ...it, amount: v } : it)),
                   }))
                 }
+                format="currency"
               />
             </Field>
           </div>
