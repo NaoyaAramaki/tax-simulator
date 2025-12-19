@@ -55,8 +55,9 @@ body {
 /* メインコンテンツ */
 .app-main {
   flex: 1;
-  margin-top: 200px; /* ヘッダーの高さ分のマージン（ボタン含む） */
+  padding-top: var(--header-height, 200px); /* ヘッダーの高さ分のパディング（動的に計算） */
   padding-bottom: 60px; /* フッターの高さ分のパディング */
+  scroll-margin-top: var(--header-height, 200px); /* スクロール時のオフセット */
 }
 
 /* コンテナ */
@@ -165,6 +166,7 @@ body {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 5;
 }
 
 .button-with-info {
@@ -349,6 +351,7 @@ input[type="number"]:disabled {
   border-radius: 6px;
   margin-bottom: 16px;
   font-size: 14px;
+  scroll-margin-top: var(--header-height, 200px); /* スクロール時のオフセット */
 }
 
 .error-message-title {
@@ -392,6 +395,7 @@ input[type="number"]:disabled {
   border-radius: 6px;
   margin-bottom: 16px;
   font-size: 14px;
+  scroll-margin-top: var(--header-height, 200px); /* スクロール時のオフセット */
 }
 
 .validation-warnings {
@@ -765,7 +769,55 @@ input:checked + .toggle-slider:before {
   flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
+/* レスポンシブデザイン */
+/* PC向け: 1024px以上 */
+@media (min-width: 1024px) {
+  .app-header {
+    padding: 20px 0;
+  }
+
+  .header-content {
+    padding: 0 16px;
+  }
+
+  .app-main {
+    padding-top: var(--header-height, 200px);
+  }
+}
+
+/* タブレット向け: 768px以上1024px未満 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-header {
+    padding: 16px 0;
+  }
+
+  .header-content {
+    padding: 0 14px;
+  }
+
+  .header-content .title {
+    font-size: 22px;
+  }
+
+  .header-content .description {
+    font-size: 13px;
+  }
+
+  .app-main {
+    padding-top: var(--header-height, 180px);
+  }
+
+  .salary-source-delete-btn {
+    right: 4px;
+  }
+
+  .insurance-block-delete-btn {
+    right: 4px;
+  }
+}
+
+/* タブレット・スマホ向け: 768px未満 */
+@media (max-width: 767px) {
   .app-header {
     padding: 12px 0;
   }
@@ -817,17 +869,32 @@ input:checked + .toggle-slider:before {
   }
 
   .app-main {
-    margin-top: 200px;
+    padding-top: var(--header-height, 200px);
+  }
+
+  .salary-source-delete-btn {
+    right: 4px;
+    top: 4px;
+  }
+
+  .insurance-block-delete-btn {
+    right: 4px;
+    top: 4px;
+  }
+
+  .section-title-info {
+    right: 4px;
   }
 }
 
-@media (max-width: 640px) {
+/* スマホ向け: 390px未満 */
+@media (max-width: 389px) {
   .header-content {
-    padding: 0 12px;
+    padding: 0 10px;
   }
 
   .app-main {
-    margin-top: 180px;
+    padding-top: var(--header-height, 180px);
   }
 
   .container {
@@ -848,6 +915,8 @@ input:checked + .toggle-slider:before {
     width: 100%;
   }
 
+  .grid-2cols,
+  .grid-3cols,
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;
@@ -860,6 +929,14 @@ input:checked + .toggle-slider:before {
   .description {
     font-size: 11px;
     line-height: 1.4;
+  }
+
+  .salary-source-item {
+    padding-right: 60px; /* 削除ボタンのスペース確保 */
+  }
+
+  .insurance-block {
+    padding-right: 60px; /* 削除ボタンのスペース確保 */
   }
 }
 
@@ -1042,6 +1119,7 @@ input:checked + .toggle-slider:before {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 5;
 }
 
 /* 保存アイテム */
@@ -1112,8 +1190,9 @@ input:checked + .toggle-slider:before {
 .salary-source-delete-btn {
   position: absolute;
   top: 5px;
-  left: 150px;
+  right: 8px;
   padding: 3px 8px;
+  z-index: 10;
 }
 
 /* 保険ブロック */
@@ -1127,8 +1206,9 @@ input:checked + .toggle-slider:before {
 .insurance-block-delete-btn {
   position: absolute;
   top: 6px;
-  left: 75px;
+  right: 8px;
   padding: 3px 8px;
+  z-index: 10;
 }
 
 .insurance-block-title {

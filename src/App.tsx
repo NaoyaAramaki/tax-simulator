@@ -268,6 +268,41 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ヘッダーの高さを動的に計算してCSS変数に設定
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('.app-header');
+      if (header) {
+        const height = header.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--header-height', `${height}px`);
+      }
+    };
+
+    // 初回設定
+    updateHeaderHeight();
+
+    // リサイズ時とエラー表示変更時に更新
+    window.addEventListener('resize', updateHeaderHeight);
+    const observer = new MutationObserver(updateHeaderHeight);
+    const header = document.querySelector('.app-header');
+    if (header) {
+      observer.observe(header, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    }
+
+    // バリデーション結果変更時にも更新
+    const validationObserver = new MutationObserver(updateHeaderHeight);
+    const validationContainer = document.querySelector('.app-header');
+    if (validationContainer) {
+      validationObserver.observe(validationContainer, { childList: true, subtree: true });
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+      observer.disconnect();
+      validationObserver.disconnect();
+    };
+  }, [validation]);
+
   const updateInput = (patch: (prev: TaxInput) => TaxInput) => setInput((prev) => patch(prev));
 
   const addSalarySource = () => {
@@ -328,9 +363,15 @@ const App: React.FC = () => {
         const yearDetails = document.querySelector('details[data-section="year"]') as HTMLDetailsElement;
         if (yearDetails) {
           yearDetails.open = true;
-          const headerHeight = document.querySelector('.app-header')?.getBoundingClientRect().height ?? 0;
-          const elementTop = yearDetails.getBoundingClientRect().top + window.pageYOffset;
-          window.scrollTo({ top: elementTop - headerHeight - 20, behavior: 'smooth' });
+          const header = document.querySelector('.app-header');
+          const headerHeight = header ? header.getBoundingClientRect().height : 0;
+          const elementRect = yearDetails.getBoundingClientRect();
+          const elementTop = elementRect.top + window.pageYOffset;
+          const offsetPosition = elementTop - headerHeight - 20;
+          window.scrollTo({ 
+            top: Math.max(0, offsetPosition), 
+            behavior: 'smooth' 
+          });
         }
       }, 100);
     } catch (e: any) {
@@ -431,17 +472,25 @@ const App: React.FC = () => {
           const fieldId = firstError.field.replace(/\./g, '-').replace(/\[|\]/g, '-');
           const element = document.querySelector(`[data-field="${fieldId}"]`) as HTMLElement;
           if (element) {
-            const headerOffset = document.querySelector('.app-header')?.clientHeight ?? 0;
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = elementPosition - headerOffset - 10; // 10px additional padding
+            const header = document.querySelector('.app-header');
+            const headerHeight = header ? header.getBoundingClientRect().height : 0;
+            const elementRect = element.getBoundingClientRect();
+            const elementPosition = elementRect.top + window.pageYOffset;
+            const offsetPosition = elementPosition - headerHeight - 20; // 20px additional padding
+            
+            // 滑らかにスクロール
             window.scrollTo({
-              top: offsetPosition,
+              top: Math.max(0, offsetPosition),
               behavior: 'smooth'
             });
-            const input = element.querySelector('input, select, textarea') as HTMLElement;
-            if (input) {
-              input.focus();
-            }
+            
+            // フォーカスを設定（スクロール完了後）
+            setTimeout(() => {
+              const input = element.querySelector('input, select, textarea') as HTMLElement;
+              if (input) {
+                input.focus();
+              }
+            }, 300);
           }
         }
       }, 100);
@@ -462,9 +511,15 @@ const App: React.FC = () => {
         const resultDetails = document.querySelector('details[data-section="result"]') as HTMLDetailsElement;
         if (resultDetails) {
           resultDetails.open = true;
-          const headerHeight = document.querySelector('.app-header')?.getBoundingClientRect().height ?? 0;
-          const elementTop = resultDetails.getBoundingClientRect().top + window.pageYOffset;
-          window.scrollTo({ top: elementTop - headerHeight - 20, behavior: 'smooth' });
+          const header = document.querySelector('.app-header');
+          const headerHeight = header ? header.getBoundingClientRect().height : 0;
+          const elementRect = resultDetails.getBoundingClientRect();
+          const elementTop = elementRect.top + window.pageYOffset;
+          const offsetPosition = elementTop - headerHeight - 20;
+          window.scrollTo({ 
+            top: Math.max(0, offsetPosition), 
+            behavior: 'smooth' 
+          });
         }
       }, 100);
     } catch (e: any) {
@@ -1258,6 +1313,7 @@ const App: React.FC = () => {
                   disabled={!input.salary.enabled}
                   placeholder="例: 4000000"
                   required={input.salary.enabled}
+                  format="currency"
                 />
               </Field>
             </div>
@@ -2205,7 +2261,7 @@ const App: React.FC = () => {
           </div>
         )}
       </header>
-      <main className="app-main">
+      <main className="app-main" style={{ paddingTop: `var(--header-height, 200px)`, scrollMarginTop: `var(--header-height, 200px)` }}>
         <div className="container">
 
       <details open={openSection.year} onToggle={(e) => handleDetailsToggle('year', e)} className="accordion" data-section="year">
