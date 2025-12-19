@@ -51,7 +51,17 @@
     "municipality": "東京都 世田谷区",
     "income_rate": 0.1,
     "per_capita": 6800,
-    "note": "標準税率"
+    "note": "標準税率",
+    "basic_deduction": {
+      "type": "brackets",
+      "unit": "yen",
+      "brackets": [
+        { "max_income": 24000000, "deduction": 430000 },
+        { "max_income": 24500000, "deduction": 290000 },
+        { "max_income": 25000000, "deduction": 150000 },
+        { "max_income": null, "deduction": 0 }
+      ]
+    }
   },
   "separate_tax": { "stock": { "rate": 0.20315 } },
   "medical_deduction": { "threshold_fixed": 100000, "threshold_rate": 0.05, "cap": 2000000 },

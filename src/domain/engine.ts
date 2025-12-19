@@ -1039,8 +1039,10 @@ export function calculateAll(input: TaxInput): EngineOutput {
   const residentIncomeAmount = totalIncomeGeneral; // 所得額 = 総所得
   
   // 2. 課税所得金額 = 所得額 - 所得控除額
-  // 基礎控除は所得税よりも5万円低い（住民税基礎控除額は43万円、ただし合計所得金額が2,400万円を超えると段階的に減少）
-  const residentBasicDeduction = Math.max(0, basicDeduction - 50000); // 所得税基礎控除 - 5万円
+  // 住民税基礎控除は合計所得金額に応じて段階的に設定（2025年以降）
+  const residentBasicDeduction = rule.resident_tax.basic_deduction
+    ? pickBracketValue(totalIncomeGeneral, rule.resident_tax.basic_deduction.brackets)
+    : Math.max(0, basicDeduction - 50000); // 2024年以前は所得税基礎控除 - 5万円
   // 生命保険料控除と地震保険料控除は住民税控除の計算結果を使用
   const residentDeductionTotal = residentBasicDeduction + socialInsuranceDeduction + ideco + small + safety + lifeTotalResidentTax + earthquakeResidentTax + medDed;
   const residentTaxableIncomeRaw = Math.max(0, residentIncomeAmount - residentDeductionTotal);

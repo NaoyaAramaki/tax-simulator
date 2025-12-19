@@ -94,6 +94,12 @@ export type RuleYear = {
     income_rate: number;
     per_capita: number;
     note?: string;
+    basic_deduction?: {
+      type: 'brackets';
+      unit: 'yen';
+      brackets: BasicDeductionBracket[];
+      notes?: string[];
+    };
   };
   separate_tax: {
     stock: {

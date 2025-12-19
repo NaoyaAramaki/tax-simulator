@@ -226,6 +226,7 @@ const prorateRound = (annual: number, months: number) =>
 **処理**:
 1. 所得割率: `overrides.residentIncomeRateOverride ?? rule.resident_tax.income_rate`
 2. 課税所得金額: `floor(max(0, 所得額 - 所得控除額) / 1000) * 1000`
+   - 基礎控除: 2025年以降は`rule.resident_tax.basic_deduction`の段階表を使用（合計所得金額に応じて43万円/29万円/15万円/0円）、2024年以前は所得税基礎控除 - 5万円
    - ※生命保険料控除・地震保険料控除は、住民税用控除額を使用する
 3. 所得割: `floor(課税所得金額 × 所得割率)`
 4. 均等割: `rule.resident_tax.per_capita`
