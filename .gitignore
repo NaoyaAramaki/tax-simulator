@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json はコミットします（依存関係のバージョン固定のため）
 
 # Build outputs
 dist/
