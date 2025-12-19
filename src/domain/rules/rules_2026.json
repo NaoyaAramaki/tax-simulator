@@ -1,0 +1,87 @@
+{
+  "year": 2026,
+  "inherits_from": 2025,
+  "income_tax": {
+    "rate_table": [
+      { "max": 1950000, "rate": 0.05, "deduction": 0, "label": "〜1,950,000" },
+      { "max": 3300000, "rate": 0.1, "deduction": 97500, "label": "〜3,300,000" },
+      { "max": 6950000, "rate": 0.2, "deduction": 427500, "label": "〜6,950,000" },
+      { "max": 9000000, "rate": 0.23, "deduction": 636000, "label": "〜9,000,000" },
+      { "max": 18000000, "rate": 0.33, "deduction": 1536000, "label": "〜18,000,000" },
+      { "max": 40000000, "rate": 0.4, "deduction": 2796000, "label": "〜40,000,000" },
+      { "max": null, "rate": 0.45, "deduction": 4796000, "label": "40,000,000超" }
+    ],
+    "basic_deduction": {
+      "type": "brackets",
+      "unit": "yen",
+      "brackets": [
+        { "max_income": 1320000, "deduction": 950000, "effective_from": "2025-01-01" },
+        { "max_income": 3360000, "deduction": 880000, "effective_from": "2025-01-01" },
+        { "max_income": 4890000, "deduction": 680000, "effective_from": "2025-01-01" },
+        { "max_income": 6550000, "deduction": 630000, "effective_from": "2025-01-01" },
+        { "max_income": 23500000, "deduction": 580000, "effective_from": "2025-01-01" },
+        { "max_income": null, "deduction": 0 }
+      ]
+    },
+    "salary_income_deduction": {
+      "type": "function_with_brackets",
+      "changed_range_only": true,
+      "minimum": 650000,
+      "brackets": [
+        { "max_income": 1625000, "formula": "650000" },
+        { "max_income": 1800000, "formula": "income*0.40-100000" },
+        { "max_income": 1900000, "formula": "income*0.30+80000" },
+        { "max_income": 3600000, "formula": "income*0.30+80000" },
+        { "max_income": 6600000, "formula": "income*0.20+440000" },
+        { "max_income": 8500000, "formula": "income*0.10+1100000" },
+        { "max_income": null, "formula": "1950000" }
+      ]
+    },
+    "dependent_income_threshold": { "value": 580000 }
+  },
+  "pension": {
+    "national_pension_monthly": {
+      "value": 17920,
+      "unit": "yen",
+      "sources": ["Nenkin_2year_prepaid"]
+    }
+  },
+  "resident_tax": {
+    "municipality": "東京都 世田谷区",
+    "income_rate": 0.1,
+    "per_capita": 6700
+  },
+  "separate_tax": { "stock": { "rate": 0.20315 } },
+  "medical_deduction": { "threshold_fixed": 100000, "threshold_rate": 0.05, "cap": 2000000 },
+  "life_insurance_deduction": {
+    "totalCap": 120000,
+    "general": {
+      "brackets": [
+        { "maxPaid": 20000, "kind": "fixed", "value": 12000 },
+        { "maxPaid": 40000, "kind": "linear", "rate": 0.5, "add": 2000 },
+        { "maxPaid": 80000, "kind": "linear", "rate": 0.25, "add": 14000 },
+        { "maxPaid": null, "kind": "fixed", "value": 40000 }
+      ]
+    },
+    "nursingMedical": {
+      "brackets": [
+        { "maxPaid": 20000, "kind": "fixed", "value": 16000 },
+        { "maxPaid": 40000, "kind": "linear", "rate": 0.5, "add": 6000 },
+        { "maxPaid": 80000, "kind": "linear", "rate": 0.25, "add": 22000 },
+        { "maxPaid": null, "kind": "fixed", "value": 32000 }
+      ]
+    },
+    "pension": {
+      "brackets": [
+        { "maxPaid": 20000, "kind": "fixed", "value": 12000 },
+        { "maxPaid": 40000, "kind": "linear", "rate": 0.5, "add": 2000 },
+        { "maxPaid": 80000, "kind": "linear", "rate": 0.25, "add": 14000 },
+        { "maxPaid": null, "kind": "fixed", "value": 40000 }
+      ]
+    }
+  },
+  "earthquake_deduction": { "cap": 50000 },
+  "blue_deduction": { "book": 550000, "electronic": 650000 },
+  "defaults": { "siRate": 0.152 }
+}
+
