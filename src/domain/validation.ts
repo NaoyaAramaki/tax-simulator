@@ -42,8 +42,7 @@ export const validateInput = (input: TaxInput): ValidationResult => {
     blocks.forEach((b, bi) => {
       if (b.months <= 0 || b.months > 12) err(`insurance.mixed.blocks[${bi}].months`, 'ブロック月数は1〜12で入力してください。');
       if (b.type === 'employee') {
-        const sum = b.breakdown.reduce((a, s) => a + s.months, 0);
-        if (sum !== b.months) err(`insurance.mixed.blocks[${bi}].breakdown`, '社保ブロックのサブ月数合計がブロック月数と一致していません。');
+        // 社保ブロックはサブブロックを廃止し、月数のみで計算するため、バリデーション不要
       } else {
         const sumNhi = b.nhiBreakdown.reduce((a, s) => a + s.months, 0);
         if (sumNhi !== b.months) err(`insurance.mixed.blocks[${bi}].nhiBreakdown`, '国保ブロックの国保サブ月数合計がブロック月数と一致していません。');
