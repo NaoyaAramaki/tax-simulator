@@ -902,6 +902,14 @@ input:checked + .toggle-slider:before {
     padding: 0 10px;
   }
 
+  .header-update-info {
+    margin-bottom: 0 !important;
+  }
+  
+  .header-content .title {
+    text-align: center;
+  }
+
   .app-main {
     padding-top: var(--header-height, 180px);
   }
@@ -910,10 +918,19 @@ input:checked + .toggle-slider:before {
     padding: 12px;
   }
 
+  .header-content .button-group-main {
+    justify-content: space-evenly;
+  }
+
   .header-content .btn-primary,
-  .header-content .btn-secondary,
-  .header-content .btn-tertiary {
+  .header-content .btn-secondary {
     font-size: .7rem;
+    max-width: 110px;
+    padding: 8px 12px;
+  }
+  
+  .header-content .btn-mobile-menu {
+    padding: 8px 12px;
   }
 
   .button-group {

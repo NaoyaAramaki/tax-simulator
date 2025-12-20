@@ -4,7 +4,10 @@ import { createEmptyInput } from '../src/domain/sample';
 
 describe('validation.validateInput', () => {
   it('前年所得の入力方法が未選択（none）はエラー', () => {
-    const input = createEmptyInput(2024);
+    const input = {
+      ...createEmptyInput(2024),
+      save: { ...createEmptyInput(2024).save, previousYearInputMode: 'none' as const },
+    };
     const v = validateInput(input);
     expect(v.errors.some((e) => e.field === 'save.previousYearInputMode')).toBe(true);
   });

@@ -235,7 +235,7 @@ const InfoModal: React.FC<{ isOpen: boolean; onClose: () => void; title: string;
 };
 
 const App: React.FC = () => {
-  const [input, setInput] = useState<TaxInput>(createDemoInput(2024));
+  const [input, setInput] = useState<TaxInput>(createEmptyInput(2024));
   const [saves, setSaves] = useState<SaveRecord[]>([]);
   const [validation, setValidation] = useState<ValidationResult>({ errors: [], warnings: [] });
   const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; content: React.ReactNode }>({ isOpen: false, title: '', content: null });
@@ -264,11 +264,7 @@ const App: React.FC = () => {
     setValidation(validateInput(input));
   }, [input]);
 
-  useEffect(() => {
-    // 初期計算
-    handleCalculate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // 初期計算は削除（ユーザーが「入力内容で計算」ボタンを押すまで計算しない）
 
   // ヘッダーの高さを動的に計算してCSS変数に設定
   useEffect(() => {
@@ -2224,7 +2220,7 @@ const App: React.FC = () => {
           <div className="button-group">
             <div className="button-group-main">
               <button onClick={handleCalculate} className="btn-primary">
-                入力内容で計算する
+                入力内容で計算
               </button>
               <button onClick={handleSave} className="btn-secondary" disabled={!output}>
                 結果を保存
@@ -2365,7 +2361,7 @@ const App: React.FC = () => {
                     <p>このツールは、納税金額をシミュレーションするためのものです。</p>
                     <ul>
                       <li>各セクションのアコーディオンメニューから必要な情報を入力してください</li>
-                      <li>「入力内容で計算する」ボタンを押すと、計算結果が表示されます</li>
+                      <li>「入力内容で計算」ボタンを押すと、計算結果が表示されます</li>
                       <li>計算結果は「結果を保存」ボタンで保存できます</li>
                       <li>保存したデータは「年度・保存」セクションから読み込めます</li>
                     </ul>

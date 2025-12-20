@@ -73,7 +73,7 @@ export const createDemoInput = (year: number): TaxInput => ({
   save: { 
     selectedSaveId: null, 
     previousYearTotalIncome: null,
-    previousYearInputMode: 'none',
+    previousYearInputMode: 'useCurrent',
     previousYearManual: undefined,
   },
 });
@@ -127,7 +127,7 @@ export const createEmptyInput = (year: number): TaxInput => ({
   save: { 
     selectedSaveId: null, 
     previousYearTotalIncome: null,
-    previousYearInputMode: 'none',
+    previousYearInputMode: 'useCurrent',
     previousYearManual: undefined,
   },
 });
