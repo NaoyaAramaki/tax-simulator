@@ -253,6 +253,8 @@ const App: React.FC = () => {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [helpPage, setHelpPage] = useState(1);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     setSaves(loadSaves());
@@ -302,6 +304,57 @@ const App: React.FC = () => {
       validationObserver.disconnect();
     };
   }, [validation]);
+
+  // スマホ版：スクロール時にヘッダーを非表示/表示
+  useEffect(() => {
+    const handleScroll = () => {
+      // スマホ版のみ適用（768px以下）
+      if (window.innerWidth > 767) {
+        setIsHeaderVisible(true);
+        return;
+      }
+
+      const currentScrollY = window.scrollY;
+      
+      // スクロール位置がトップに近い場合は常に表示
+      if (currentScrollY < 50) {
+        setIsHeaderVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      // スクロール方向を判定
+      if (currentScrollY > lastScrollY) {
+        // 下にスクロール：ヘッダーを非表示
+        setIsHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // 上にスクロール：ヘッダーを表示
+        setIsHeaderVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    // スクロールイベントリスナーを追加（パフォーマンス最適化のためthrottle）
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [lastScrollY]);
 
   const updateInput = (patch: (prev: TaxInput) => TaxInput) => setInput((prev) => patch(prev));
 
@@ -607,10 +660,8 @@ const App: React.FC = () => {
         >
         <div className="button-group-inline">
           <button onClick={handleSave} className="btn-primary">自動命名で保存</button>
-          <div className="button-with-info">
-            <button onClick={applyDemo} className="btn-secondary">デモ値を反映</button>
-          </div>
-          <button onClick={clearAllInputs} className="btn-secondary">入力値の一括削除</button>
+          <button onClick={applyDemo} className="btn-secondary">デモ値を反映</button>
+          <button onClick={clearAllInputs} className="btn-tertiary">入力値の一括削除</button>
         </div>
         {saves.length === 0 && <div>保存はまだありません。</div>}
         {saves.map((s) => (
@@ -2160,7 +2211,7 @@ const App: React.FC = () => {
   return (
     <>
     <div className="app-wrapper">
-      <header className="app-header">
+      <header className={`app-header ${!isHeaderVisible ? 'header-hidden' : ''}`}>
         <div className="header-content">
           <div className="header-update-info">
             <span>最終更新日: 2025-12-19</span>

@@ -32,6 +32,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   z-index: 1000;
   padding: 20px 0;
+  transition: transform 0.3s ease-in-out;
 }
 
 .header-content {
@@ -126,7 +127,7 @@ body {
 }
 
 /* セカンダリボタン */
-.btn-secondary {
+.btn-secondary, .btn-tertiary {
   padding: 10px 20px;
   background: #6b7280;
   color: #fff;
@@ -139,12 +140,12 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover, .btn-tertiary:hover {
   background: #4b5563;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.btn-secondary:active {
+.btn-secondary:active, .btn-tertiary:active {
   background: #374151;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
@@ -167,12 +168,6 @@ body {
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
-}
-
-.button-with-info {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* フィールド */
@@ -822,6 +817,11 @@ input:checked + .toggle-slider:before {
     padding: 12px 0;
   }
 
+  /* スマホ版：スクロール時にヘッダーを非表示 */
+  .app-header.header-hidden {
+    transform: translateY(-100%);
+  }
+
   .header-content {
     padding: 0 12px;
   }
@@ -850,7 +850,8 @@ input:checked + .toggle-slider:before {
   }
 
   .button-group-main .btn-primary,
-  .button-group-main .btn-secondary {
+  .button-group-main .btn-secondary,
+  .button-group-main .btn-tertiary {
     flex: 1;
     min-width: 0;
   }
@@ -872,6 +873,10 @@ input:checked + .toggle-slider:before {
     padding-top: var(--header-height, 200px);
   }
 
+  .save-item {
+    display: block;
+  }
+
   .salary-source-delete-btn {
     right: 4px;
     top: 4px;
@@ -884,6 +889,10 @@ input:checked + .toggle-slider:before {
 
   .section-title-info {
     right: 4px;
+  }
+
+  .app-footer {
+    position: static;
   }
 }
 
@@ -901,13 +910,20 @@ input:checked + .toggle-slider:before {
     padding: 12px;
   }
 
+  .header-content .btn-primary,
+  .header-content .btn-secondary,
+  .header-content .btn-tertiary {
+    font-size: .7rem;
+  }
+
   .button-group {
     flex-direction: column;
     gap: 8px;
   }
 
   .btn-primary,
-  .btn-secondary {
+  .btn-secondary,
+  .btn-tertiary {
     width: 100%;
   }
 
@@ -929,6 +945,19 @@ input:checked + .toggle-slider:before {
   .description {
     font-size: 11px;
     line-height: 1.4;
+  }
+
+  .button-group-inline {
+    display: block !important;
+  }
+
+  .app-main  .btn-secondary,
+  .app-main  .btn-tertiary {
+    margin-top: 5px;
+  }
+
+  .grid-3cols, .grid-2cols {
+    display: block !important;
   }
 
   .salary-source-item {
@@ -1112,14 +1141,6 @@ input:checked + .toggle-slider:before {
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
-}
-
-.button-group-inline .button-with-info .info-button {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
 }
 
 /* 保存アイテム */

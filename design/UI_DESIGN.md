@@ -463,6 +463,10 @@
 - ヘッダーの高さは動的に計算され、CSS変数 `--header-height` に設定される
 - コンテンツエリアは `padding-top: var(--header-height)` でヘッダーの高さ分下に配置される
 - スクロール時も `scroll-margin-top: var(--header-height)` でヘッダーの高さを考慮する
+- **スマホ版（768px以下）**: 下スクロール時にヘッダーを非表示、上スクロール時に表示（操作範囲を広げるため）
+  - スクロール位置がトップに近い（50px未満）場合は常に表示
+  - `transform: translateY(-100%)` でスムーズに非表示/表示
+  - `transition: transform 0.3s ease-in-out` で滑らかなアニメーション
 
 #### 要素の重なり防止
 - `position: absolute` 指定の要素（削除ボタン、Infoボタンなど）は `z-index` を設定して重なりを防止
@@ -490,6 +494,10 @@
 - ヘッダーの高さは動的に計算され、CSS変数 `--header-height` に設定される
 - コンテンツエリアは `padding-top: var(--header-height)` でヘッダーの高さ分下に配置される
 - スクロール時も `scroll-margin-top: var(--header-height)` でヘッダーの高さを考慮する
+- **スマホ版（768px以下）**: 下スクロール時にヘッダーを非表示、上スクロール時に表示（操作範囲を広げるため）
+  - スクロール位置がトップに近い（50px未満）場合は常に表示
+  - `transform: translateY(-100%)` でスムーズに非表示/表示
+  - `transition: transform 0.3s ease-in-out` で滑らかなアニメーション
 
 #### 要素の重なり防止
 - `position: absolute` 指定の要素（削除ボタン、Infoボタンなど）は `z-index` を設定して重なりを防止
