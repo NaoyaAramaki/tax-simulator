@@ -17,11 +17,15 @@
         { "max_income": 1320000, "deduction": 950000, "needs_review": true },
         { "max_income": 6550000, "deduction": 580000 },
         { "max_income": 23500000, "deduction": 580000 },
+        { "max_income": 24000000, "deduction": 480000 },
+        { "max_income": 24500000, "deduction": 320000 },
+        { "max_income": 25000000, "deduction": 160000 },
         { "max_income": null, "deduction": 0 }
       ],
       "notes": [
         "132万円超〜655万円以下の加算が終了し、58万円に縮小",
-        "132万円以下95万円は要確認（needs_review）"
+        "132万円以下95万円は要確認（needs_review）",
+        "2025年以降: 2,350万円以下58万円、2,350万円超～2,400万円以下48万円、2,400万円超～2,450万円以下32万円、2,450万円超～2,500万円以下16万円、2,500万円超0円"
       ]
     },
     "salary_income_deduction": {

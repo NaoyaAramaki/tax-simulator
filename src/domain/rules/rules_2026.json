@@ -20,7 +20,13 @@
         { "max_income": 4890000, "deduction": 680000, "effective_from": "2025-01-01" },
         { "max_income": 6550000, "deduction": 630000, "effective_from": "2025-01-01" },
         { "max_income": 23500000, "deduction": 580000, "effective_from": "2025-01-01" },
+        { "max_income": 24000000, "deduction": 480000, "effective_from": "2025-01-01" },
+        { "max_income": 24500000, "deduction": 320000, "effective_from": "2025-01-01" },
+        { "max_income": 25000000, "deduction": 160000, "effective_from": "2025-01-01" },
         { "max_income": null, "deduction": 0 }
+      ],
+      "notes": [
+        "2025年以降: 2,350万円以下58万円、2,350万円超～2,400万円以下48万円、2,400万円超～2,450万円以下32万円、2,450万円超～2,500万円以下16万円、2,500万円超0円"
       ]
     },
     "salary_income_deduction": {

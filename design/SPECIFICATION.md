@@ -194,7 +194,7 @@ type EngineOutput = {
 
 type Summary = {
   year: number;
-  incomeTaxGeneral: number;         // 所得税（合計）= 所得税（総合課税）+ 分離課税の所得税 + 復興特別所得税
+  incomeTaxGeneral: number;         // 所得税（合計）= 所得税（総合課税）+ 分離課税の所得税 + 復興特別所得税（100円未満切り捨て）
   residentTaxTotal: number;         // 住民税合計
   separateTaxStock: number;        // 株式分離課税（計算結果サマリーには表示しない）
   socialInsuranceDeduction: number; // 社会保険料控除合計
@@ -204,7 +204,7 @@ type Summary = {
 
 type DerivedValues = {
   taxableIncomeGeneral: number;     // 課税所得（総合）
-  residentIncomePart: number;       // 住民税所得割額
+  residentIncomePart: number;       // 住民税所得割額（100円未満切り捨て）
   incomeTaxRate: number;            // 所得税率（限界）
   totalIncomeGeneral: number;       // 総所得（総合）
   socialInsuranceTotal: number;     // 社保合計

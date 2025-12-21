@@ -704,7 +704,36 @@ export function calculateAll(input: TaxInput): EngineOutput {
   const socialInsuranceDeduction = siTotal + nhiTotal + npTotal;
 
   // --- Deductions ---
-  const basicDeduction = pickBracketValue(totalIncomeGeneral, rule.income_tax.basic_deduction.brackets);
+  // 所得税基礎控除の計算（年度により異なる）
+  let basicDeduction: number;
+  if (input.year < 2020) {
+    // 2019年以前: 一律38万円
+    basicDeduction = 380000;
+  } else if (input.year <= 2024) {
+    // 2020年～2024年: 合計所得金額に応じた段階的控除
+    if (totalIncomeGeneral <= 24000000) {
+      basicDeduction = 480000;
+    } else if (totalIncomeGeneral <= 24500000) {
+      basicDeduction = 320000;
+    } else if (totalIncomeGeneral <= 25000000) {
+      basicDeduction = 160000;
+    } else {
+      basicDeduction = 0;
+    }
+  } else {
+    // 2025年以降: 合計所得金額に応じた段階的控除
+    if (totalIncomeGeneral <= 23500000) {
+      basicDeduction = 580000;
+    } else if (totalIncomeGeneral <= 24000000) {
+      basicDeduction = 480000;
+    } else if (totalIncomeGeneral <= 24500000) {
+      basicDeduction = 320000;
+    } else if (totalIncomeGeneral <= 25000000) {
+      basicDeduction = 160000;
+    } else {
+      basicDeduction = 0;
+    }
+  }
   const ideco = input.deductions.ideco;
   const small = input.deductions.smallBizMutualAid;
   const safety = input.deductions.safetyMutualAid;
@@ -1048,7 +1077,8 @@ export function calculateAll(input: TaxInput): EngineOutput {
   
   // 3. 所得割額 = 課税所得 × 10%（税率）- 税額控除額（今回は税額控除額は0と仮定）
   const residentRate = input.overrides.residentIncomeRateOverride ?? rule.resident_tax.income_rate;
-  const residentIncomePart = floor(residentTaxableIncome * residentRate);
+  // 住民税（所得割）: 100円未満を切り捨て
+  const residentIncomePart = floor(floor(residentTaxableIncome * residentRate) / 100) * 100;
   
   push(lines, {
     section: 'tax.resident',
@@ -1150,7 +1180,8 @@ export function calculateAll(input: TaxInput): EngineOutput {
   const separateResidentTaxForSeparate = floor(stockSeparateBase * separateResidentRateForSeparate);
   
   // 所得税（合計）= 所得税（総合課税）+ 分離課税の所得税 + 復興特別所得税
-  const incomeTaxTotal = incomeTax + separateIncomeTax + separateReconstructionTax;
+  // 100円未満を切り捨て
+  const incomeTaxTotal = floor((incomeTax + separateIncomeTax + separateReconstructionTax) / 100) * 100;
 
   push(lines, {
     section: 'tax.income',
